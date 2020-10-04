@@ -1,0 +1,38 @@
+# 设置虚拟机内存为64MB 
+memory: guest=64, host=32
+# 设置BIOS镜像
+#romimage: file=$BXSHARE/BIOS-bochs-latest 
+# 设置VGA BIOS镜像
+#vgaromimage: file=$BXSHARE/VGABIOS-lgpl-latest
+# 设置启动软盘
+#floppya: 1_44=a.img, status=inserted
+
+# 设置启动方式
+#boot: floppy
+boot: disk
+
+
+# 设置日志文件
+#log: bochsout.txt
+# 关闭鼠标
+#mouse: enabled=0
+# 打开键盘
+#keyboard:keymap=/usr/local/share/bochs/keymaps/sdl2-pc-us.map
+
+# 设置硬盘
+ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
+
+#启动磁盘的 大小为100MB,需要单独设置磁道之类的内容, 和启动磁盘的路径文件
+#ata0-master: type=disk, mode=flat, path="a.img", cylinders=615, heads=16, spt=20
+	# 100MB = 104857600 Bytes
+	# 盘面16个
+	# 每个盘面  615 个柱面(磁道)
+	# 每个柱面(磁道) 20个扇区
+	# 每个扇区 512Bytes 字节
+
+ata0-master: type=disk, mode=flat, path="a.img"
+#ata0-master: type=disk, mode=flat, path="a.img", cylinders=615, heads=2, spt=17
+
+
+# 添加gdb远程调试支持
+#gdbstub: enabled=1, port=1234, text_base=0, data_base=0, bss_base=0
