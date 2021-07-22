@@ -37,10 +37,10 @@
 >       mouse: enabled=0
 >       # 打开键盘
 >       keyboard:keymap=/usr/local/share/bochs/keymaps/sdl2-pc-us.map
->       
+>           
 >       # 设置硬盘
 >       # ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
->       
+>           
 >       # 添加gdb远程调试支持
 >       #gdbstub: enabled=1, port=1234, text_base=0, data_base=0, bss_base=0
 >       ```
@@ -48,12 +48,12 @@
 > - **运行 bochs:**
 >
 >   - `cd /Users/user/bochsObj`  首先来到工作目录
->   - **`bochs -f bochsrc`   运行模拟器 并且设置配置文件为 bochsrc**
+>   - **bochs -f bochsrc`   运行模拟器 并且设置配置文件为 bochsrc**
 >   - **运行后 选择6 来准备开始模拟**
 >     - **运行命令:**
 >       - 随后的 是选择运行就输入 `c` , 他会运行到断点处, 如果没断点 就一直运行
 >       - 如果输入 `n` , 就是单步执行, 跳过子程序和 init 中断程序
->       - **`s 步数`   如果单独出现 `s` 也是单步执行,  如果加上步数 , 就表示 执行 多少步**
+>       - **s 步数`   如果单独出现 `s` 也是单步执行,  如果加上步数 , 就表示 执行 多少步**
 >     - **断点命令:**
 >       - **如果要设置断点就需要 `b 物理地址` , 虚拟地址断点  `vb 地址`**
 >       - 指定线性地址设置断点 `lb 地址` , 
@@ -63,7 +63,7 @@
 >       - **`u/数量`   查看多少条代码, 从当前位置开始向下计算, 从低向高**
 >     - **状态和寄存器查看:**
 >       - `r`  只查看通用寄存器
->       - **`sreg`  查看段寄存器 (es cs gs ss fs ds、idt gdt ldt tr )**
+>       - **sreg`  查看段寄存器 (es cs gs ss fs ds、idt gdt ldt tr )**
 >       - `creg`  查看控制寄存器(cr0 ~ cr3)
 >       - `dreg`  查看调试寄存器(dr0 ~ dr7)
 >       - `x (nuf) [addr]`  显示线性地址内容
