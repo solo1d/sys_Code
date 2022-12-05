@@ -13,8 +13,8 @@
 <bochs:x> b 0x7c00       # 实模式下， 打断点 (物理地址) , pb与b作用相同
 <bochs:x> vb 0x0:0x7c00  #保护模式下， 打断点 (虚拟地址)  addr为段基址：偏移地址， cs段
 <bochs:x> lb 0x7c00      # 在线性地址处设置断点  addr为线性物理地址，不加基址
-<bochs:x> sb 5           # 执行 5 条汇编之类后程序就中断
-<bochs:x> sba 5          # CPU开始运行时，执行第 5 条汇编之类后程序就中断 （上电一刻就开始计算）
+<bochs:x> sb 5           # 从当前位置开始再执行 5 条汇编之类后程序就中断（相对）
+<bochs:x> sba 5          # CPU开始运行时，执行第 5 条汇编之类后程序就中断 （上电一刻就开始计算）（绝对）
 <bochs:x> d 1            # 删除 1号断点，通过 blist来查询断点号。
 <bochs:x> bpd 1          # 禁用 1号断点，通过 blist来查询断点号。
 <bochs:x> bpe 1          # 启用 1号断点，通过 blist来查询断点号。
@@ -71,10 +71,11 @@ info指令组
 <bochs:x> info tss 		#展示当前的任务状态段
 <bochs:x> info cr     #展示CR0-CR4寄存器状态 （无法使用）
 <bochs:x> info flags  #展示标志寄存器   （无法使用）
-
+<bochs:x> info tab    #显示页表中线性地址到物理地址的映射
+<bochs:x> page 线性地址   #显示线性地址到物理地址的映射
 
 开启 在中断发生时输出提示,用以排查报错
-<bochs:x> show int  #开启 在中断发生时输出提示
+<bochs:x> show int  #开启 在中断发生时输出提示。exception 外部中断, softint软件中断
 <bochs:x> show extint  #
 <bochs:x> show sofint  #
 <bochs:x> show iret    #

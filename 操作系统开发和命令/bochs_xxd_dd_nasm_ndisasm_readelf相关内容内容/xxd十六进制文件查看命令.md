@@ -1,7 +1,7 @@
 
 ```bash
 #usage: sh xxd.sh 文件 起始地址 长度 
-$xxd -u -a -g 1 -s 起始位置 -l 长度 文件名 
+$xxd -u -a -g 1 -seek 起始位置偏移字节数 -l 长度 文件名 
 
 #-u  use upper case hex letters. Default is lower case.
 #
