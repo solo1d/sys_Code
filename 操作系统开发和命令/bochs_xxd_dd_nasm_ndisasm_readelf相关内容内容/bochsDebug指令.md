@@ -76,7 +76,7 @@ info指令组
 
 开启 在中断发生时输出提示,用以排查报错
 <bochs:x> show int  #开启 在中断发生时输出提示。exception 外部中断, softint软件中断
-<bochs:x> show extint  #
+<bochs:x> show extint  # 开启， 打印中断信息
 <bochs:x> show sofint  #
 <bochs:x> show iret    #
 
@@ -86,5 +86,111 @@ info指令组
 查看内存物理地址内容：xp /nuf addr |eg：xp /40bx 0x9013e
 查看线性地址内容：x /nuf addr |eg：x /40bx 0x13e
 反汇编一段内存：u start end  |eg：u 0x30400 0x3020D
+```
+
+
+
+### 中断调试过程
+
+```bash
+bash$  nm kernel.bin  | grep thread_start
+		# 获得  c00031a0 T thread_start   
+
+#开始执行 bochs
+bochs:
+
+<bochs:1>  lb 0xc00031a0		# 进入函数断点
+<bochs:2> c
+	(0) Breakpoint 1, 0x00000000c00031a0 in ?? ()
+	Next at t=8503101
+	(0) [0x0000000031a0] 0008:00000000c00031a0 (unk. ctxt): push ebp                  ; 55
+
+<bochs:3> info b			# 查看断点
+	Num Type           Disp Enb Address
+  1 lbreakpoint    keep y   0x00000000c00031a0 
+
+<bochs:4> d 1					#删除断点
+
+<bochs:5> show extint		#显示中断信息
+		show external interrupts: ON
+		show mask is: extint
+
+<bochs:6> c					#开始执行， 不滚动信息之后 就用快捷键中断(control + c)
+00009460872: exception (not softint) 0008:c0001ad9 (0xc0001ad9)
+00009460958: exception (not softint) 0008:c00018cb (0xc00018cb)	# 取该行的 00009460958 值
+^CNext at t=103039110
+(0) [0x000000001d71] 0008:00000000c0001d71 (unk. ctxt): jmp .-2  (0xc0001d71)     ; ebfe
+
+<bochs:7> q				#信息获得完全， 退出即可
+
+
+#开始执行 bochs
+bochs:
+			# 从上面最后一行获得 9460958 值， 在该基础上 -1 ，就会得到进入中断前的最后一个指令
+<bochs:1>  sba 9460957					# 在 9460957 条汇编上打个断点
+	Time breakpoint inserted. Delta = 9460957
+
+<bochs:2> c			#开始执行
+	(0) Caught time breakpoint
+	Next at t=9460957
+	(0) [0x000000001650] 0008:00000000c0001650 (unk. ctxt): mov byte ptr gs:[bx], cl  ; 6567880f	# 该最后一条指令用了 gs 和 bx 寄存器的值，需要看看是否正确
+
+<bochs:3> r					# 查看通用寄存器。 主要关注 bx 寄存器的值
+rax: 00000000_c000cfcf
+rbx: 00000000_c0009f9e			# gdt 越界了
+rcx: 00000000_0000004d
+rdx: 00000000_c01003d5
+rsp: 00000000_c009efac
+rbp: 00000000_c009eff8
+rsi: 00000000_00070000
+rdi: 00000000_00000000
+r8 : 00000000_00000000
+r9 : 00000000_00000000
+r10: 00000000_00000000
+r11: 00000000_00000000
+r12: 00000000_00000000
+r13: 00000000_00000000
+r14: 00000000_00000000
+r15: 00000000_00000000
+rip: 00000000_c0001650
+eflags 0x00000283: id vip vif ac vm rf nt IOPL=0 of df IF tf SF zf af pf CF
+
+
+<bochs:4> sreg				# 查看段寄存器，主要关注 GS 寄存器的值
+es:0x0010, dh=0x00cf9300, dl=0x0000ffff, valid=1
+	Data segment, base=0x00000000, limit=0xffffffff, Read/Write, Accessed
+cs:0x0008, dh=0x00cf9900, dl=0x0000ffff, valid=1
+	Code segment, base=0x00000000, limit=0xffffffff, Execute-Only, Non-Conforming, Accessed, 32-bit
+ss:0x0010, dh=0x00cf9300, dl=0x0000ffff, valid=31
+	Data segment, base=0x00000000, limit=0xffffffff, Read/Write, Accessed
+ds:0x0010, dh=0x00cf9300, dl=0x0000ffff, valid=1
+	Data segment, base=0x00000000, limit=0xffffffff, Read/Write, Accessed
+fs:0x0000, dh=0x00001000, dl=0x00000000, valid=0
+gs:0x0018, dh=0xc0c0930b, dl=0x80000007, valid=1		# 指向  GDT[0x0018] 
+	Data segment, base=0xc00b8000, limit=0x00007fff, Read/Write, Accessed
+ldtr:0x0000, dh=0x00008200, dl=0x0000ffff, valid=1
+tr:0x0000, dh=0x00008b00, dl=0x0000ffff, valid=1
+gdtr:base=0x00000000c0000900, limit=0x1f
+idtr:base=0x00000000c00071e0, limit=0x107
+
+<bochs:5> info gdt			#展示全局描述表 gdt. 看 limit 限制值
+Global Descriptor Table (base=0x00000000c0000900, limit=31):
+GDT[0x0000]=??? descriptor hi=0x00000000, lo=0x00000000
+GDT[0x0008]=Code segment, base=0x00000000, limit=0xffffffff, Execute-Only, Non-Conforming, Accessed, 32-bit
+GDT[0x0010]=Data segment, base=0x00000000, limit=0xffffffff, Read/Write, Accessed
+GDT[0x0018]=Data segment, base=0xc00b8000, limit=0x00007fff, Read/Write, Accessed # 这里
+You can list individual entries with 'info gdt [NUM]' or groups with 'info gdt [NUM] [NUM]'
+
+<bochs:6> x gs:bx				# 查看内存位置的值, 下面有个警告 超出描述符限制了。 bug 找到了
+WARNING: Offset 00009F9E is out of selector 0018 limit (00000000...00007fff)!
+[bochs]:
+0x00000000c00c1f9e <bogus+       0>:	0x007cc6c6
+
+# 下一条指令就执行进入了中断， 因为引发了越界异常
+<bochs:8> s
+(0) Caught time breakpoint
+Next at t=9460958
+(0) [0x0000000018cb] 0008:00000000c00018cb (unk. ctxt): nop                       ; 90
+
 ```
 
